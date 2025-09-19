@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /about-us
+Allow: /collections
+Allow: /contact-us
+Disallow: /admin/
+Disallow: /private/
+Disallow: /tmp/
+Disallow: /cgi-bin/
+Crawl-delay: 2
+
+Sitemap: https://rugspace.in/sitemap.xml
