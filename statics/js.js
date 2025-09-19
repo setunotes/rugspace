@@ -8,33 +8,28 @@ const patternLines = document.querySelectorAll('.pattern-line');
 const actionButtons = document.querySelectorAll('.action-btn');
 const diamond = document.querySelector('.pattern-diamond');
 
+// Utility: safe addEventListener
+function on(el, evt, handler, opts) {
+  if (el) el.addEventListener(evt, handler, opts);
+}
+
 // ===== CATEGORY FILTERING =====
 function setupCategoryFiltering() {
-  categoryButtons.forEach(function(button) {
-    button.addEventListener('click', function() {
-      // Remove active class from all buttons
-      categoryButtons.forEach(function(btn) {
-        btn.classList.remove('active');
-      });
-      
-      // Add active class to clicked button
+  if (!categoryButtons.length || !collectionItems.length) return;
+  categoryButtons.forEach(function (button) {
+    on(button, 'click', function () {
+      categoryButtons.forEach(function (btn) { btn.classList.remove('active'); });
       this.classList.add('active');
-      
-      // Get selected category
+
       const selectedCategory = this.getAttribute('data-category');
-      
-      // Filter items
-      collectionItems.forEach(function(item) {
+      collectionItems.forEach(function (item) {
         const itemCategory = item.getAttribute('data-category');
-        
         if (selectedCategory === 'all' || itemCategory === selectedCategory) {
           item.classList.remove('hidden');
         } else {
           item.classList.add('hidden');
         }
       });
-      
-      // Trigger animation for visible items
       animateOnScroll();
     });
   });
@@ -42,26 +37,21 @@ function setupCategoryFiltering() {
 
 // ===== HEADER SCROLL EFFECT =====
 function setupHeaderScrollEffect() {
-  window.addEventListener('scroll', function() {
-    if (window.scrollY > 100) {
-      header.style.background = 'rgba(26, 26, 26, 0.98)';
-    } else {
-      header.style.background = 'rgba(26, 26, 26, 0.95)';
-    }
+  if (!header) return;
+  on(window, 'scroll', function () {
+    header.style.background =
+      window.scrollY > 100 ? 'rgba(26, 26, 26, 0.98)' : 'rgba(26, 26, 26, 0.95)';
   });
 }
 
 // ===== SMOOTH SCROLLING =====
 function setupSmoothScrolling() {
-  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
+  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+    on(anchor, 'click', function (e) {
       e.preventDefault();
       const target = document.querySelector(this.getAttribute('href'));
       if (target) {
-        target.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   });
@@ -69,10 +59,10 @@ function setupSmoothScrolling() {
 
 // ===== ANIMATION ON SCROLL =====
 function animateOnScroll() {
-  collectionItems.forEach(function(item) {
+  if (!collectionItems.length) return;
+  collectionItems.forEach(function (item) {
     const rect = item.getBoundingClientRect();
     const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-    
     if (isVisible && !item.classList.contains('hidden')) {
       item.style.animationPlayState = 'running';
     }
@@ -80,79 +70,72 @@ function animateOnScroll() {
 }
 
 function setupScrollAnimations() {
-  window.addEventListener('scroll', animateOnScroll);
-  window.addEventListener('load', animateOnScroll);
+  on(window, 'scroll', animateOnScroll);
+  on(window, 'load', animateOnScroll);
 }
 
 // ===== SEARCH FUNCTIONALITY =====
 function performSearch() {
+  if (!searchInput) return;
   const query = searchInput.value.trim();
   if (query) {
-    // Redirect to collections page with search parameter
     window.location.href = 'collections.html?search=' + encodeURIComponent(query);
   }
 }
 
 function setupSearch() {
-  searchBtn.addEventListener('click', performSearch);
-  searchInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      performSearch();
-    }
+  if (!searchBtn || !searchInput) return; // prevent null addEventListener
+  on(searchBtn, 'click', performSearch);
+  on(searchInput, 'keypress', function (e) {
+    if (e.key === 'Enter') performSearch();
   });
 }
 
 // ===== INTERACTIVE EFFECTS =====
 function setupInteractiveEffects() {
-  // Animate the rug pattern
-  patternLines.forEach(function(line, index) {
-    line.style.animationDelay = (index * 0.5) + 's';
-  });
-  
-  // Add click effect to action buttons
-  actionButtons.forEach(function(button) {
-    button.addEventListener('click', function(e) {
-      const ripple = document.createElement('span');
-      ripple.classList.add('ripple');
-      this.appendChild(ripple);
-      
-      setTimeout(function() {
-        ripple.remove();
-      }, 600);
+  if (patternLines.length) {
+    patternLines.forEach(function (line, index) {
+      line.style.animationDelay = index * 0.5 + 's';
     });
-  });
+  }
+  if (actionButtons.length) {
+    actionButtons.forEach(function (button) {
+      on(button, 'click', function () {
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        this.appendChild(ripple);
+        setTimeout(function () { ripple.remove(); }, 600);
+      });
+    });
+  }
 }
 
 // ===== DYNAMIC PATTERN EFFECTS =====
 function setupPatternEffects() {
-  setInterval(function() {
-    if (Math.random() > 0.7) { // 30% chance
+  if (!diamond && !patternLines.length) return;
+  setInterval(function () {
+    if (Math.random() > 0.7) {
       const colors = ['#d4af37', '#f4e4aa', '#c48137'];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
-      
-      diamond.style.background = randomColor;
-      patternLines.forEach(function(line) {
-        line.style.background = randomColor;
-      });
-      
-      // Reset after 2 seconds
-      setTimeout(function() {
-        diamond.style.background = '#d4af37';
-        patternLines.forEach(function(line) {
-          line.style.background = '#d4af37';
-        });
+
+      if (diamond) diamond.style.background = randomColor;
+      patternLines.forEach(function (line) { line.style.background = randomColor; });
+
+      setTimeout(function () {
+        if (diamond) diamond.style.background = '#d4af37';
+        patternLines.forEach(function (line) { line.style.background = '#d4af37'; });
       }, 2000);
     }
   }, 5000);
 }
 
 // ===== INITIALIZATION =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   setupCategoryFiltering();
   setupHeaderScrollEffect();
   setupSmoothScrolling();
   setupScrollAnimations();
-  setupSearch();
+  setupSearch();              // now null-safe
   setupInteractiveEffects();
   setupPatternEffects();
 });
@@ -162,28 +145,20 @@ const mobileNavToggle = document.getElementById('mobileNavToggle');
 const navMenu = document.getElementById('navMenu');
 
 if (mobileNavToggle && navMenu) {
-  mobileNavToggle.addEventListener('click', function() {
+  on(mobileNavToggle, 'click', function () {
     navMenu.classList.toggle('mobile-active');
-    
-    // Change hamburger icon
-    if (navMenu.classList.contains('mobile-active')) {
-      this.innerHTML = '✕';
-    } else {
-      this.innerHTML = '☰';
-    }
+    this.innerHTML = navMenu.classList.contains('mobile-active') ? '✕' : '☰';
   });
 
-  // Close menu when clicking on a link
   const navLinks = document.querySelectorAll('.nav-link');
-  navLinks.forEach(function(link) {
-    link.addEventListener('click', function() {
+  navLinks.forEach(function (link) {
+    on(link, 'click', function () {
       navMenu.classList.remove('mobile-active');
       mobileNavToggle.innerHTML = '☰';
     });
   });
 
-  // Close menu when clicking outside
-  document.addEventListener('click', function(e) {
+  on(document, 'click', function (e) {
     if (!navMenu.contains(e.target) && !mobileNavToggle.contains(e.target)) {
       navMenu.classList.remove('mobile-active');
       mobileNavToggle.innerHTML = '☰';
